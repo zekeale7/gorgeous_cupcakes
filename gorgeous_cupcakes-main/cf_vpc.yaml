@@ -1,0 +1,50 @@
+---
+Resources:
+  CFWebPageSG: # Create a Secuirty Group Name here
+    Type: AWS::EC2::SecurityGroup # Copy from AWS
+    Properties:
+      GroupDescription: Allow access on ports 80 and 22 #SG rules description
+      GroupName: cf-webpage-test-sg
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - key: Name
+          Value: cf-webpage-test-sg
+          VpcId: vpc-06ed8be9b0c655bf0 # Get VPC ID from AWS portal
+  CFWebpagetestEC2: # Create a EC2 Name here
+    Type: AWS::EC2::Instance # Copy from AWS
+    Properties:
+      InstanceType: t2.micro # Free plan, don't change for testing use
+      SubnetId: subnet-03716ccfbcded0e11 # Get Subnet Id from AWS portal
+      SecurityGroupIds:
+        - !Ref CFWebPageSG # Get the SG name which has been created in SG section (here is line 3)
+      keyName: rossw # Get Key name from AWS portal -> EC2 page
+      ImageId: ami-026b57f3c383c2eec # Get ImageId from AWS portal
+      Tages:
+        - Key: Name
+          Value: cf-webpage-test-ec2
+          UserData:
+            Fn::Base64:
+              !Sub |
+                #! /bin/bash -xe
+                sudo su
+                yum update -y
+                yum install -y httpd
+                cd /var/www/html
+                wget https://github.com/azeezsalu/techmax/archive/refs/heads/main.zip
+                unzip main.zip
+                cp -r CloudFormation-main/* /var/www/html/
+                rm -rf CloudFormation-main main.zip
+                systemctl enable httpd
+                systemct1 start httpd
+                
+
+
+  
